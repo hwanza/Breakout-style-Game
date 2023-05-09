@@ -16,22 +16,23 @@ int		right = 0;
 int		top = 0;
 int		collision_count = 0;
 float PaddleX1 = 300.0, PaddleX2 = 400.0;
-// ¾È³çÇÏ¼¼¿ä
+// ì•ˆë…•í•˜ì„¸ìš”
+// ì‘ ì•„ë‹ˆì•¼
 
-// °øÀÌ º®µ¹¿¡ Ãæµ¹ÇÑ È½¼ö
+// ê³µì´ ë²½ëŒì— ì¶©ëŒí•œ íšŸìˆ˜
 int		Bcollision_count = 0;
 
 
-// °íÁ¤µÈ °øÀÇ ¹İÁö¸§, ¿òÁ÷ÀÌ´Â °øÀÇ ¹İÁö¸§
+// ê³ ì •ëœ ê³µì˜ ë°˜ì§€ë¦„, ì›€ì§ì´ëŠ” ê³µì˜ ë°˜ì§€ë¦„
 float	radius1, moving_ball_radius;
 float	delta1_x, delta2_y, deltaP1_x, deltaP2_y;
 
 
-// ÆĞµé ÁÂÇ¥(x, y)
+// íŒ¨ë“¤ ì¢Œí‘œ(x, y)
 float Paddle[8] = { PaddleX1, 100.0, PaddleX1, 120.0, PaddleX2, 120.0, PaddleX2, 100.0 };
 
 
-// Ã¹¹øÂ° º®µ¹ ÁÂÇ¥(¾Æ·¡±âÁØ, 0Çà ¿ŞÂÊ¿¡¼­ ½ÃÀÛ)
+// ì²«ë²ˆì§¸ ë²½ëŒ ì¢Œí‘œ(ì•„ë˜ê¸°ì¤€, 0í–‰ ì™¼ìª½ì—ì„œ ì‹œì‘)
 float brick[5][8] = {
 	{180.0, 380.0, 180.0, 430.0, 230.0, 430.0, 230.0, 380.0},
 	{250.0, 380.0, 250.0, 430.0, 300.0, 430.0, 300.0, 380.0},
@@ -41,7 +42,7 @@ float brick[5][8] = {
 };
 
 
-// µÎ¹øÂ° º®µ¹ ÁÂÇ¥(0Çà ¿ŞÂÊ¿¡¼­ ½ÃÀÛ)
+// ë‘ë²ˆì§¸ ë²½ëŒ ì¢Œí‘œ(0í–‰ ì™¼ìª½ì—ì„œ ì‹œì‘)
 float brick2[5][8] = {
 	{180.0, 450.0, 180.0, 500.0, 230.0, 500.0, 230.0, 450.0},
 	{250.0, 450.0, 250.0, 500.0, 300.0, 500.0, 300.0, 450.0},
@@ -51,7 +52,7 @@ float brick2[5][8] = {
 };
 
 
-// ±¸Á¶Ã¼ Point 
+// êµ¬ì¡°ì²´ Point 
 typedef struct _Point {
 	float	x;
 	float	y;
@@ -62,7 +63,7 @@ Point	fixed_ball, moving_ball, velocity;
 Point center;
 
 
-// ÃÊ±âÈ­ ÇÔ¼ö
+// ì´ˆê¸°í™” í•¨ìˆ˜
 void init(void) {
 	radius1 = 5.0;
 	fixed_ball.x = width / 2;
@@ -79,7 +80,7 @@ void init(void) {
 }
 
 
-// µµÇü±×¸®±â ÇÔ¼ö
+// ë„í˜•ê·¸ë¦¬ê¸° í•¨ìˆ˜
 void MyReshape(int w, int h) {
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
@@ -88,7 +89,7 @@ void MyReshape(int w, int h) {
 }
 
 
-// ¿ø ±×¸®±â(Âü°í)
+// ì› ê·¸ë¦¬ê¸°(ì°¸ê³ )
 void	Modeling_Circle(float radius, Point CC) {
 	float	delta;
 	delta = 2 * PI / polygon_num;
@@ -99,14 +100,14 @@ void	Modeling_Circle(float radius, Point CC) {
 }
 
 
-// °ÔÀÓÆÇ ±×¸®±â(µµÇü)
+// ê²Œì„íŒ ê·¸ë¦¬ê¸°(ë„í˜•)
 void Modeling_GameGround() {
 
-	// °ËÀº»ö
+	// ê²€ì€ìƒ‰
 	glColor3f(0.0, 0.0, 0.0);
 	glBegin(GL_POLYGON);
 
-	// À©µµ¿ì »çÀÌÁî(700, 700)
+	// ìœˆë„ìš° ì‚¬ì´ì¦ˆ(700, 700)
 	glVertex2f(0.0, 350.0);
 	glVertex2f(350.0, 700.0);
 
@@ -123,19 +124,19 @@ void Modeling_GameGround() {
 }
 
 
-// Ã¹¹øÂ°ÁÙ º®µ¹ ±×¸®±â
+// ì²«ë²ˆì§¸ì¤„ ë²½ëŒ ê·¸ë¦¬ê¸°
 void Modeling_brick() {
 
 	for (int i = 0; i < 5; i++) {
 
 		glColor3f(1.0, 1.0, 1.0);
 
-		// ¸¸¾à¿¡ Ã¹¹øÂ° ÁÙÀÇ 3¹øÂ° »ç°¢ÇüÀÌ¶ó¸é
+		// ë§Œì•½ì— ì²«ë²ˆì§¸ ì¤„ì˜ 3ë²ˆì§¸ ì‚¬ê°í˜•ì´ë¼ë©´
 		if (i == 2) {
-			// °øÀÇ Ãæµ¹È½¼ö°¡ 0ÀÌ¶ó¸é ÇÏ¾á»öÀ¸·Î ³ªÅ¸³½´Ù.
+			// ê³µì˜ ì¶©ëŒíšŸìˆ˜ê°€ 0ì´ë¼ë©´ í•˜ì–€ìƒ‰ìœ¼ë¡œ ë‚˜íƒ€ë‚¸ë‹¤.
 			if (Bcollision_count == 0) glColor3f(1.0, 1.0, 1.0);
 
-			// °øÀÇ Ãæµ¹È½¼ö°¡ 0ÀÌ ¾Æ´Ï¶ó¸é °ËÀº»öÀ¸·Î ³ªÅ¸³½´Ù.
+			// ê³µì˜ ì¶©ëŒíšŸìˆ˜ê°€ 0ì´ ì•„ë‹ˆë¼ë©´ ê²€ì€ìƒ‰ìœ¼ë¡œ ë‚˜íƒ€ë‚¸ë‹¤.
 			else glColor3f(0.0, 0.0, 0.0);
 		}
 		else if (i == 4) {
@@ -143,7 +144,7 @@ void Modeling_brick() {
 			else glColor3f(0.0, 0.0, 0.0);
 		}
 
-		// ³ª¸ÓÁö´Â ÇÏ¾á»ö »ç°¢ÇüÀ¸·Î ¸¸µç´Ù.
+		// ë‚˜ë¨¸ì§€ëŠ” í•˜ì–€ìƒ‰ ì‚¬ê°í˜•ìœ¼ë¡œ ë§Œë“ ë‹¤.
 		glBegin(GL_POLYGON);
 		glVertex2f(brick[i][0], brick[i][1]);
 		glVertex2f(brick[i][2], brick[i][3]);
@@ -155,12 +156,12 @@ void Modeling_brick() {
 }
 
 
-// µÎ¹øÂ°ÁÙ º®µ¹ ±×¸®±â
+// ë‘ë²ˆì§¸ì¤„ ë²½ëŒ ê·¸ë¦¬ê¸°
 void Modeling_brick2() {
 
 	glColor3f(1.0, 1.0, 1.0);
 
-	// ÇÏ¾á»ö »ç°¢ÇüÀ» ¸¸µç´Ù.
+	// í•˜ì–€ìƒ‰ ì‚¬ê°í˜•ì„ ë§Œë“ ë‹¤.
 	for (int i = 0; i < 5; i++) {
 		glBegin(GL_POLYGON);
 		glVertex2f(brick2[i][0], brick2[i][1]);
@@ -172,7 +173,7 @@ void Modeling_brick2() {
 }
 
 
-// ÆĞµé ±×¸®±â
+// íŒ¨ë“¤ ê·¸ë¦¬ê¸°
 void Modeling_Paddle() {
 	glColor3f(0.0, 1.0, 1.0);
 	glBegin(GL_POLYGON);
@@ -186,7 +187,7 @@ void Modeling_Paddle() {
 //{320.0, 380.0, 320.0, 430.0, 370.0, 430.0, 370.0, 380.0},
 
 
-// °øÀÌ º®µ¹¿¡ Ãæµ¹ÇßÀ»¶§
+// ê³µì´ ë²½ëŒì— ì¶©ëŒí–ˆì„ë•Œ
 void Collision_Detection_to_Brick(void) {
 	float distanceP, brickX = 350.0, brickY = 380.0;
 	deltaP1_x = moving_ball.x - brickX;
@@ -195,13 +196,13 @@ void Collision_Detection_to_Brick(void) {
 	distanceP = sqrt(deltaP1_x * deltaP1_x + deltaP2_y * deltaP2_y);
 
 
-	// ¿òÁ÷ÀÌ´Â °øÀÌ º®µ¹¿¡ Ãæµ¹ÇßÀ» ¶§ º¤ÅÍ yÀÇ ÁøÇà¹æÇâÀ» À½ÀÇ ¹æÇâÀ¸·Î ¹Ù²Û´Ù.
+	// ì›€ì§ì´ëŠ” ê³µì´ ë²½ëŒì— ì¶©ëŒí–ˆì„ ë•Œ ë²¡í„° yì˜ ì§„í–‰ë°©í–¥ì„ ìŒì˜ ë°©í–¥ìœ¼ë¡œ ë°”ê¾¼ë‹¤.
 	/*if (distanceP < moving_ball_radius) {
 		Bcollision_count++;
 		velocity.y = - velocity.y;
 	}*/
 
-	// °øÀÌ Ãæµ¹ÇßÀ» ¶§ º®µ¹ÀÇ À§Ä¡¸¦ ¹Ù²Û´Ù.
+	// ê³µì´ ì¶©ëŒí–ˆì„ ë•Œ ë²½ëŒì˜ ìœ„ì¹˜ë¥¼ ë°”ê¾¼ë‹¤.
 	if (Bcollision_count != 0) {
 		for (int i = 0; i < 8; i += 2) {
 			brick[i][8] = { 450.0 };
@@ -220,7 +221,7 @@ void Collision_Detection_to_Brick(void) {
 //float Paddle[8] = { 300.0, 100.0, 300.0, 120.0, 400.0, 120.0, 400.0, 100.0 };
 
 
-// °øÀÌ ÆĞµé¿¡ Ãæµ¹ÇßÀ»¶§
+// ê³µì´ íŒ¨ë“¤ì— ì¶©ëŒí–ˆì„ë•Œ
 void Collision_Detection_to_Paddle(void) {
 	//if (moving_ball.y - moving_ball_radius < 120.0) {
 	//	/*if (moving_ball.y - moving_ball_radius < 0.0) {*/
@@ -244,7 +245,7 @@ void Collision_Detection_to_Paddle(void) {
 }
 
 
-// °øÀÌ º®¿¡ Ãæµ¹ÇßÀ»¶§ ÇÔ¼ö
+// ê³µì´ ë²½ì— ì¶©ëŒí–ˆì„ë•Œ í•¨ìˆ˜
 void Collision_Detection_to_Walls(void) {
 
 	float distanceP, brickX = 350.0, brickY = 380.0;
@@ -254,7 +255,7 @@ void Collision_Detection_to_Walls(void) {
 	distanceP = sqrt(deltaP1_x * deltaP1_x + deltaP2_y * deltaP2_y);
 
 
-	// ¾Æ·¡ÂÊ º®
+	// ì•„ë˜ìª½ ë²½
 	//if (moving_ball.y - moving_ball_radius < 120.0) {
 	//	/*Bcollision_count--;*/
 	//	Bcollision_count++;
@@ -262,21 +263,21 @@ void Collision_Detection_to_Walls(void) {
 	//}
 
 	// width
-	// ¿À¸¥ÂÊ º® Ãæµ¹
+	// ì˜¤ë¥¸ìª½ ë²½ ì¶©ëŒ
 	if (moving_ball.x + moving_ball_radius > width) {
 		/*Bcollision_count--;*/
 		velocity.x = -velocity.x;
 	}
 
 	// width
-	// À§ÂÊ º® Ãæµ¹
+	// ìœ„ìª½ ë²½ ì¶©ëŒ
 	if (moving_ball.y + moving_ball_radius > width) {
 		/*Bcollision_count++;*/
 		velocity.y = -velocity.y;
 	}
 
 	// 0
-	// ¿ŞÂÊ º® Ãæµ¹
+	// ì™¼ìª½ ë²½ ì¶©ëŒ
 	if (moving_ball.x - moving_ball_radius < 0.0) {
 		/*Bcollision_count++;*/
 		velocity.x = -velocity.x;
@@ -285,7 +286,7 @@ void Collision_Detection_to_Walls(void) {
 }
 
 
-// ½ÇÇàÇÏ´Â ÇÔ¼ö
+// ì‹¤í–‰í•˜ëŠ” í•¨ìˆ˜
 void RenderScene(void) {
 
 	glClearColor(1.0, 1.0, 1.0, 0.0); // Set display-window color to Yellow
@@ -297,24 +298,24 @@ void RenderScene(void) {
 	Modeling_brick2();
 	Modeling_Paddle();
 
-	/*À©µµ¿ì Áß½ÉÀÇ À§Ä¡¿¡ °íÁ¤µÈ °ø ±×¸®±â */
+	/*ìœˆë„ìš° ì¤‘ì‹¬ì˜ ìœ„ì¹˜ì— ê³ ì •ëœ ê³µ ê·¸ë¦¬ê¸° */
 
 	//glColor3f(1.0, 1.0, 0.0);
 	//if (collision_count % 2)
 	//	Modeling_Circle(radius1, fixed_ball);
 	//else glColor3f(1.0, 1.0, 0.0);
 
-	// ¿òÁ÷ÀÌ´Â °øÀÇ À§Ä¡ º¯È­
+	// ì›€ì§ì´ëŠ” ê³µì˜ ìœ„ì¹˜ ë³€í™”
 	moving_ball.x += velocity.x;
 	moving_ball.y += velocity.y;
 
-	// Ãæµ¹ Ã³¸® ºÎºĞ
-	//Collision_Detection_Between_Balls(); // °ø°ú °øÀÇ Ãæµ¹ ÇÔ¼ö
+	// ì¶©ëŒ ì²˜ë¦¬ ë¶€ë¶„
+	//Collision_Detection_Between_Balls(); // ê³µê³¼ ê³µì˜ ì¶©ëŒ í•¨ìˆ˜
 	/*Collision_Detection_to_Brick();*/
-	Collision_Detection_to_Walls(); // °ø°ú º®ÀÇ Ãæµ¹ ÇÔ¼ö
+	Collision_Detection_to_Walls(); // ê³µê³¼ ë²½ì˜ ì¶©ëŒ í•¨ìˆ˜
 	Collision_Detection_to_Paddle();
 
-	// ¿òÁ÷ÀÌ´Â °ø ±×¸®±â 
+	// ì›€ì§ì´ëŠ” ê³µ ê·¸ë¦¬ê¸° 
 	glColor3f(0.0, 1.0, 1.0);
 	Modeling_Circle(moving_ball_radius, moving_ball);
 
@@ -323,7 +324,7 @@ void RenderScene(void) {
 }
 
 
-// Å°º¸µå Å°¸¦ ´©¸£´Â ÇÔ¼ö
+// í‚¤ë³´ë“œ í‚¤ë¥¼ ëˆ„ë¥´ëŠ” í•¨ìˆ˜
 void SpecialKey(int key, int x, int y) {
 	switch (key) {
 	case GLUT_KEY_LEFT:
