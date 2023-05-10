@@ -16,8 +16,7 @@ int		right = 0;
 int		top = 0;
 int		collision_count = 0;
 float PaddleX1 = 300.0, PaddleX2 = 400.0;
-// 안녕하세요
-// 응 아니야
+
 
 // 공이 벽돌에 충돌한 횟수
 int		Bcollision_count = 0;
