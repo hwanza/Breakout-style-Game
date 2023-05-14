@@ -22,6 +22,8 @@ int		collision_count = 0;
 float PaddleX1 = 300.0, PaddleX2 = 400.0;
 float PaddleY1 = 100.0, PaddleY2 = 120.0;
 
+float Line;
+
 int LeftTopLineX = 1, LeftTopLineY = 400;
 
 float speed = 0.6;
@@ -103,6 +105,21 @@ void MyReshape(int w, int h) {
 	gluOrtho2D(left, left + width, bottom, bottom + height); // mouse2()
 }
 
+void Line1() {
+	float x1 = 0.0, x2 = 400.0, y1 = 400.0, y2 = 800.0, a, b, x, y;
+
+	a = (y2 - y1) / (x2 - x1);
+	b = (x2 * y1 - x1 * y2) / (x2 - x1);
+	
+	y = a + b;
+}
+
+float Line2() {
+	float x1 = 0.0, x2 = 400.0, y1 = 400.0, y2 = 800.0, distance;
+	distance = sqrt(pow((x2 - x1), 2) - pow((y2 - y1), 2));
+
+	return distance;
+}
 
 // 원 그리기(참고)
 void	Modeling_Circle(float radius, Point CC) {
@@ -213,7 +230,7 @@ void Collision_Detection_to_Brick(void) {
 
 	distanceP = sqrt(deltaP1_x * deltaP1_x + deltaP2_y * deltaP2_y);
 
-
+	
 	// 움직이는 공이 벽돌에 충돌했을 때 벡터 y의 진행방향을 음의 방향으로 바꾼다.
 	/*if (distanceP < moving_ball_radius) {
 		Bcollision_count++;
@@ -245,6 +262,7 @@ void Collision_Detection_to_Paddle(void) {
 
 	float Pdistance1, Pdistance2, Pdistance3, Scalar;
 	Point vector1, vector2, vector3;
+
 	/*Pdistance1 = sqrt(pow((moving_ball.x - PaddleX1), 2) + pow((moving_ball.y - PaddleY1), 2));*/
 	Pdistance1 = sqrt(pow((PaddleX2 - moving_ball.x), 2) + pow((PaddleY2 - moving_ball.y), 2));
 	
@@ -253,12 +271,11 @@ void Collision_Detection_to_Paddle(void) {
 
 	/*Scalar = sqrt(pow((CenterX - moving_ball.x), 2) + pow((CenterY - moving_ball.y), 2));*/
 
-
-	printf("vector1.x : %f \n", vector1.x);
-	printf("vector1.y : %f \n", vector1.y);
+	//printf("vector1.x : %f \n", vector1.x);
+	//printf("vector1.y : %f \n", vector1.y);
 
 	Pdistance2 = sqrt(pow((CenterX - PaddleX2), 2) + pow((CenterY - PaddleY2), 2));
-	printf("Pdistance2 : %f \n", Pdistance2);
+	/*printf("Pdistance2 : %f \n", Pdistance2);*/
 
 	vector2.x = velocity.x / Pdistance2;
 	vector2.y = velocity.y / Pdistance2;
@@ -275,6 +292,7 @@ void Collision_Detection_to_Paddle(void) {
 		vector2.x = -vector2.x;
 		vector2.y = -vector2.y;
 	}
+
 }
 
 
@@ -285,11 +303,9 @@ void Collision_Detection_to_Walls(void) {
 	deltaP1_x = moving_ball.x - brickX;
 	deltaP2_y = moving_ball.y - brickY;
 
-	distanceP = sqrt(deltaP1_x * deltaP1_x + deltaP2_y * deltaP2_y);
+	/*distanceP = sqrt(deltaP1_x * deltaP1_x + deltaP2_y * deltaP2_y);*/
 	
 	float Left;
-
-	
 
 	// 아래쪽 벽
 	//if (moving_ball.y - moving_ball_radius < 120.0) {
@@ -309,12 +325,18 @@ void Collision_Detection_to_Walls(void) {
 	//	velocity.y = -velocity.y;
 	//}
 
+	//if (distanceP == moving_ball_radius) {
+	//	velocity.x = -velocity.x;
+	//}
+
 
 	// width
 	// 오른쪽 벽 충돌
 	if (moving_ball.x + moving_ball_radius > width) {
 		/*Bcollision_count--;*/
 		velocity.x = -velocity.x;
+		printf("velocity.x : %f\n", moving_ball.x);
+		printf("distanceP : %f\n", distanceP);
 	}
 
 	// width
@@ -322,6 +344,8 @@ void Collision_Detection_to_Walls(void) {
 	if (moving_ball.y + moving_ball_radius > width) {
 		/*Bcollision_count++;*/
 		velocity.y = -velocity.y;
+		printf("velocity.x : %f\n", moving_ball.x);
+		printf("distanceP : %f\n", distanceP);
 	}
 
 	// 0
@@ -329,6 +353,8 @@ void Collision_Detection_to_Walls(void) {
 	if (moving_ball.x - moving_ball_radius < 0.0) {
 		/*Bcollision_count++;*/
 		velocity.x = -velocity.x;
+		printf("velocity.x : %f\n", moving_ball.x);
+		printf("distanceP : %f\n", distanceP);
 	}
 
 
@@ -388,16 +414,40 @@ void MyKey(unsigned char key, int x, int y) {
 // 키보드 키를 누르는 함수
 void SpecialKey(int key, int x, int y) {
 	switch (key) {
+
+	// 패들이 사각형 안에서 밖으로 안삐져나감(왼쪽 방향키)
 	case GLUT_KEY_LEFT:
-		Paddle[0] -= 10.0;
-		Paddle[2] -= 10.0;
-		Paddle[4] -= 10.0;
-		Paddle[6] -= 10.0; break;
+		if (Paddle[0] <= 300.0) {
+			Paddle[0] += 10.0;
+			Paddle[2] += 10.0;
+			Paddle[4] += 10.0;
+			Paddle[6] += 10.0;
+			break;
+		}
+		else {
+			Paddle[0] -= 10.0;
+			Paddle[2] -= 10.0;
+			Paddle[4] -= 10.0;
+			Paddle[6] -= 10.0;
+			break;
+		}
+		
+	// 패들이 사각형 안에서 밖으로 안삐져나감(오른쪽 방향키)
 	case GLUT_KEY_RIGHT:
-		Paddle[0] += 10.0;
-		Paddle[2] += 10.0;
-		Paddle[4] += 10.0;
-		Paddle[6] += 10.0; break;
+		if (Paddle[0] >= 400.0) {
+			Paddle[0] -= 10.0;
+			Paddle[2] -= 10.0;
+			Paddle[4] -= 10.0;
+			Paddle[6] -= 10.0;
+			break;
+		}
+		else {
+			Paddle[0] += 10.0;
+			Paddle[2] += 10.0;
+			Paddle[4] += 10.0;
+			Paddle[6] += 10.0; break;
+		}
+		
 	default: break;
 	}
 }
