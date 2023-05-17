@@ -19,14 +19,17 @@ int		right = 0;
 int		top = 0;
 int		collision_count = 0;
 
+
 float PaddleX1 = 300.0, PaddleX2 = 400.0;
 float PaddleY1 = 100.0, PaddleY2 = 120.0;
+
 
 float Line;
 
 int LeftTopLineX = 1, LeftTopLineY = 400;
 
-float speed = 0.6;
+float speed = 0.2;
+
 
 // 공이 벽돌에 충돌한 횟수
 int		Bcollision_count = 0;
@@ -35,6 +38,7 @@ int		Bcollision_count = 0;
 // 고정된 공의 반지름, 움직이는 공의 반지름
 float	radius1, moving_ball_radius;
 float	delta1_x, delta2_y, deltaP1_x, deltaP2_y;
+
 
 
 // 패들 좌표(x, y)
@@ -46,22 +50,24 @@ float Paddle[8] = { PaddleX1, PaddleY1, PaddleX1, PaddleY2, PaddleX2, PaddleY2, 
 
 
 // 첫번째 벽돌 좌표(아래기준, 0행 왼쪽에서 시작)
+float brickX = 220.0, brickY = 380.0;
 float brick[5][8] = {
-	{180.0, 380.0, 180.0, 430.0, 230.0, 430.0, 230.0, 380.0},
-	{250.0, 380.0, 250.0, 430.0, 300.0, 430.0, 300.0, 380.0},
-	{320.0, 380.0, 320.0, 430.0, 370.0, 430.0, 370.0, 380.0},
-	{390.0, 380.0, 390.0, 430.0, 440.0, 430.0, 440.0, 380.0},
-	{460.0, 380.0, 460.0, 430.0, 510.0, 430.0, 510.0, 380.0},
+	{brickX, brickY, brickX, brickY + 50.0, brickX + 50.0, brickY + 50.0, brickX + 50.0, brickY},
+	{brickX + 70.0, brickY, brickX + 70.0, brickY + 50.0, brickX + 120.0, brickY + 50.0, brickX + 120.0, brickY},
+	{brickX + 140.0, brickY, brickX + 140.0, brickY + 50.0, brickX + 190.0, brickY + 50.0, brickX + 190.0, brickY},
+	{brickX + 210.0, brickY, brickX + 210.0, brickY + 50.0, brickX + 260.0, brickY + 50.0, brickX + 260.0, brickY},
+	{brickX + 280.0, brickY, brickX + 280.0, brickY + 50.0, brickX + 330.0, brickY + 50.0, brickX + 330.0, brickY},
 };
 
 
 // 두번째 벽돌 좌표(0행 왼쪽에서 시작)
+float brick2X = 220.0, brick2Y = 450.0;
 float brick2[5][8] = {
-	{180.0, 450.0, 180.0, 500.0, 230.0, 500.0, 230.0, 450.0},
-	{250.0, 450.0, 250.0, 500.0, 300.0, 500.0, 300.0, 450.0},
-	{320.0, 450.0, 320.0, 500.0, 370.0, 500.0, 370.0, 450.0},
-	{390.0, 450.0, 390.0, 500.0, 440.0, 500.0, 440.0, 450.0},
-	{460.0, 450.0, 460.0, 500.0, 510.0, 500.0, 510.0, 450.0},
+	{brick2X, brick2Y, brick2X, brick2Y + 50.0, brick2X + 50.0, brick2Y + 50.0, brick2X + 50.0, brick2Y},
+	{brick2X + 70.0, brick2Y, brickX + 70.0, brick2Y + 50.0, brickX + 120.0, brick2Y + 50.0, brickX + 120.0, brick2Y},
+	{brickX + 140.0, brick2Y, brickX + 140.0, brick2Y + 50.0, brickX + 190.0, brick2Y + 50.0, brickX + 190.0, brick2Y},
+	{brickX + 210.0, brick2Y, brickX + 210.0, brick2Y + 50.0, brickX + 260.0, brick2Y + 50.0, brickX + 260.0, brick2Y},
+	{brickX + 280.0, brick2Y, brickX + 280.0, brick2Y + 50.0, brickX + 330.0, brick2Y + 50.0, brickX + 330.0, brick2Y},
 };
 
 
@@ -83,15 +89,19 @@ void init(void) {
 	moving_ball.x = width / 2;
 	moving_ball.y = height / 2;
 
-
 	center.x = width / 2;
 	center.y = height / 2;
 
-
-	velocity.x = 0.3;
-	velocity.y = 0.5;
+	velocity.x = 0.7;
+	velocity.y = 0.2;
 
 	collision_count = 1;
+}
+
+float normalize(float a, float b) {
+	float value;
+	value = sqrt(pow(a, 2) + pow(b, 2));
+	return value;
 }
 
 
@@ -104,14 +114,63 @@ void MyReshape(int w, int h) {
 }
 
 
-// 직선의 방정식
-//float Line1(float i) {
-//	float x2 = 400.0, x1 = 800.0, y2 = 800.0, y1 = 400.0, m, x, y, distance;
-//	m = (y2 - y1) / (x2 - x1);
-//
-//	y = m * (i - x1) + y1;
-//	return y;
-//}
+// 패들 방정식
+float StraightP(float u) {
+	float x2 = 300.0, x1 = 490.0, y2 = 120.0, y1 = 120.0, m, y;
+	m = (y2 - y1) / (x2 - x1);
+
+	y = m * (u - x1) + y1;
+	return y;
+}
+
+
+// 직선의 방정식(우상단)
+float Straight(float u) {
+	float x2 = 400.0, x1 = 800.0, y2 = 800.0, y1 = 400.0, m, y;
+	m = (y2 - y1) / (x2 - x1);
+
+	y = m * (u - x1) + y1;
+	return y;
+}
+
+
+// 직선의 방정식(좌하단)
+float Straight2(float i) {
+	float x2 = 0.0, x1 = 400.0, y2 = 400.0, y1 = 0.0, m, y;
+	m = (y2 - y1) / (x2 - x1);
+
+	y = m * (i - x1) + y1;
+	return y;
+}
+
+
+// 직선의 방정식(좌상단)
+float Straight3(float i) {
+	float x2 = 0.0, x1 = 400.0, y2 = 400.0, y1 = 800.0, m, y;
+	m = (y2 - y1) / (x2 - x1);
+
+	y = m * (i - x1) + y1;
+	return y;
+}
+
+
+// 직선의 방정식(우하단)
+float Straight4(float i) {
+	float x2 = 400.0, x1 = 800.0, y2 = 0.0, y1 = 400.0, m, y;
+	m = (y2 - y1) / (x2 - x1);
+
+	y = m * (i - x1) + y1;
+	return y;
+}
+
+
+// 원과 직선 사이의 거리 공식(패들)
+float LinePaddle(float x1, float y1) {
+	float distancePaddle;
+
+	distancePaddle = std::abs((0 * x1) + (-1 * y1) + 120.0) / 1;
+	return distancePaddle;
+}
 
 
 // 원과 직선 사이의 거리 공식(우상단)
@@ -130,16 +189,6 @@ float LineLeftUp(float x1, float y1) {
 	distanceLUp = std::abs((1 * x1) + (-1 * y1) + 400.0) / 1;
 	return distanceLUp;
 }
-
-
-
-//float Line2() {
-//	float x1 = 0.0, x2 = 400.0, y1 = 400.0, y2 = 800.0, distance;
-//	distance = sqrt(pow((x2 - x1), 2) - pow((y2 - y1), 2));
-//
-//	return distance;
-//}
-
 
 
 // 원 그리기(참고)
@@ -170,36 +219,11 @@ void Modeling_GameGround() {
 }
 
 
-// y = x + 400; 왼쪽 위
-int Point_to_Straight(int a, int b) {
-	int distance;
-
-	if (moving_ball.y <= 600) {
-		distance = std::abs(moving_ball.x + moving_ball.y) / 401;
-	}
-
-	return distance;
-}
-
-
 // 첫번째줄 벽돌 그리기
 void Modeling_brick() {
 
 	for (int i = 0; i < 5; i++) {
 		glColor3f(1.0, 1.0, 1.0);
-
-		//// 만약에 첫번째 줄의 3번째 사각형이라면
-		//if (i == 2) {
-		//	// 공의 충돌횟수가 0이라면 하얀색으로 나타낸다.
-		//	if (Bcollision_count == 0) glColor3f(1.0, 1.0, 1.0);
-
-		//	// 공의 충돌횟수가 0이 아니라면 검은색으로 나타낸다.
-		//	else glColor3f(0.0, 0.0, 0.0);
-		//}
-		//else if (i == 4) {
-		//	if (Bcollision_count == 0) glColor3f(1.0, 1.0, 1.0);
-		//	else glColor3f(0.0, 0.0, 0.0);
-		//}
 
 		// 나머지는 하얀색 사각형으로 만든다.
 		glBegin(GL_POLYGON);
@@ -244,9 +268,10 @@ void Modeling_Paddle() {
 
 // 공이 벽돌에 충돌했을때
 void Collision_Detection_to_Brick(void) {
-	float distanceP, brickX = 350.0, brickY = 380.0;
-	deltaP1_x = moving_ball.x - brickX;
-	deltaP2_y = moving_ball.y - brickY;
+	float distanceP, distanceP2, distanceP3;
+	float brickX, brickY = 0.0;
+	//deltaP1_x = moving_ball.x - brickX;
+	//deltaP2_y = moving_ball.y - brickY;
 
 	distanceP = sqrt(deltaP1_x * deltaP1_x + deltaP2_y * deltaP2_y);
 
@@ -260,162 +285,216 @@ void Collision_Detection_to_Brick(void) {
 	// 공이 충돌했을 때 벽돌의 위치를 바꾼다.
 	/*if (Bcollision_count != 0) {
 		for (int i = 0; i < 8; i += 2) {
-			brick[i][8] = { 450.0 };
+			brick[i][8] = { brickY };
 		}
 	}*/
 }
 
+// 패들 부분 좀 더 생각
 
 // 공이 패들에 충돌했을때
 void Collision_Detection_to_Paddle(void) {
 
-	//if (moving_ball.y - moving_ball_radius < 120.0) {
-	//	/*if (moving_ball.y - moving_ball_radius < 0.0) {*/
-	//	velocity.y = std::abs(velocity.y);
-	//	/*}*/
-	//}
-
-	//if (std::abs(velocity.y) + moving_ball_radius < 120.0) {
-	//	/*velocity.x = -velocity.x;*/
-	//	/*velocity.y = -velocity.y;*/
-	//}
-
+	
 	// 패들 충돌 변수
 	float Pdistance1, Pdistance2, Pdistance3, Scalar;
-	Point vector1, vector2, vector3;
+	Point vector1, vector2, vector3; vector1.x, vector1.y, vector2.x, vector2.y, vector3.x, vector3.y= 0.0;
 
-	/*Pdistance1 = sqrt(pow((moving_ball.x - PaddleX1), 2) + pow((moving_ball.y - PaddleY1), 2));*/
-	Pdistance1 = sqrt(pow((PaddleX2 - moving_ball.x), 2) + pow((PaddleY2 - moving_ball.y), 2));
 
-	vector1.x = velocity.x / Pdistance1;
-	vector1.y = velocity.y / Pdistance1;
+	if (LinePaddle(moving_ball.x, moving_ball.y) < moving_ball_radius) {
+	if (moving_ball.x >= Paddle[0] || moving_ball.x <= Paddle[6]) {
 
-	/*Scalar = sqrt(pow((CenterX - moving_ball.x), 2) + pow((CenterY - moving_ball.y), 2));*/
+		// 방향벡터
+		vector1.x = moving_ball.x - center.x;
+		vector1.y = StraightP(moving_ball.x) - center.y;
 
-	Pdistance2 = sqrt(pow((CenterX - PaddleX2), 2) + pow((CenterY - PaddleY2), 2));
+		vector1.x = vector1.x / normalize(vector1.x, vector1.y);
+		vector1.y = vector1.y / normalize(vector1.x, vector1.y);
 
-	vector2.x = velocity.x / Pdistance2;
-	vector2.y = velocity.y / Pdistance2;
+		// 법선벡터
+		vector2.x = (width / 2) - 300.0;
+		vector2.y = width - 300.0;
 
-	if (Pdistance2 <= moving_ball_radius) {
-		/*if (velocity.x >= PaddleX1 || velocity.x <= PaddleX2) {
-			Bcollision_count++;
-			velocity.y = -velocity.y;
-		}*/
+		vector2.x = vector2.x / normalize(vector2.x, vector2.y);
+		vector2.y = vector2.y / normalize(vector2.x, vector2.y);
 
-		//velocity.x = -velocity.x;
-		//velocity.y = -velocity.y;
+		vector3.x = vector1.x + (2 * vector2.x);
+		vector3.y = vector1.x + (2 * vector2.y);
 
-		vector2.x = -vector2.x;
-		vector2.y = -vector2.y;
+		vector3.x = vector3.x / normalize(vector3.x, vector3.y);
+		vector3.y = vector3.y / normalize(vector3.x, vector3.y);
+
+		printf("LinePaddle : %f\n", LinePaddle(moving_ball.x, moving_ball.y));
+
+		velocity.x = vector3.x;
+		velocity.y = vector3.y;
+		}
+
+		else {
+			velocity.x = 0;
+			velocity.y = 0;
+		}
 	}
 
+	
 }
 
 
 // 공이 벽에 충돌했을때 함수
 void Collision_Detection_to_Walls(void) {
 
-	float distanceP, distanceP2, distanceP3, brickX = 350.0, brickY = 380.0;
-	float HX, HY;
-	Point Vector1;
+	float distanceP, distanceP2, distanceP3;
+	Point Vector1, Vector2, Vector3;
+	Vector1.x = 0, Vector2.x = 0, Vector3.x = 0;
+	Vector1.y = 0, Vector2.y = 0, Vector3.y = 0;
 
 
-	// 법선벡터 n 벡터(x, y) 좌표
-	Vector1.x = center.x;
-	Vector1.y = center.y;
-
-	/*distanceP = sqrt(pow(moving_ball.x - , 2) - pow(moving_ball.y - , 2));*/
-	// distanceP = sqrt(pow(CenterX - Line1(moving_ball.x), 2) - pow(CenterY - Line1(moving_ball.y), 2));
-
-
-	//Left = Point_to_Straight(moving_ball.x, moving_ball.y);
-	//if (Left == moving_ball_radius) {
-	//	velocity.y = -velocity.y;
-	//}
-
-
-	//if (moving_ball.y + 400.0 <= 800.0) {
-	//	/*velocity.x = -velocity.x;*/
-	//	velocity.y = -velocity.y;
-	//}
-
-	//if (distanceP == moving_ball_radius) {
-	//	velocity.x = -velocity.x;
-	//}
-
-
-	// 경기장 우상단 벽 충돌
+// 경기장 우상단 벽 충돌
 	float RightUp = LineRightUp(moving_ball.x, moving_ball.y);
 	float LeftUp = LineLeftUp(moving_ball.x, moving_ball.y);
-	/*printf("debug : %f\n", RightUp);*/
 	if (RightUp < moving_ball_radius) {
-		velocity.y = -velocity.y;
-		velocity.x = -velocity.x;
-		printf("RightUp : %f\n", RightUp);
+
+		// 벡터 정규화(벡터의 길이를 1로 만드는 것)
+		// 벡터의 각 성분을 벡터의 크기로 나누는 것
+
+		// 점과 점 사이의 거리(크기)
+
+		// 방향벡터(시점이 경기장의 중앙 -> 충돌 지점)
+		Vector1.x = moving_ball.x - center.x;
+		Vector1.y = Straight(moving_ball.x) - center.y;
+
+
+		// 정규화
+		Vector1.x = Vector1.x / normalize(Vector1.x, Vector1.y);
+		Vector1.y = Vector1.y / normalize(Vector1.x, Vector1.y);
+
+
+		// 법선벡터(시점이 충돌 지점 600, 600 종점 경기장의 중앙)
+		Vector2.x = 0.0 - (width / 2);
+		Vector2.y = (width / 2) - width;
+
+
+		// 정규화
+		Vector2.x = Vector2.x / normalize(Vector2.x, Vector2.y);
+		Vector2.y = Vector2.y / normalize(Vector2.x, Vector2.y);
+
+
+		Vector3.x = Vector1.x + (2 * Vector2.x);
+		Vector3.y = Vector1.y + (2 * Vector2.y);
+
+
+		Vector3.x = Vector3.x / normalize(Vector3.x, Vector3.y);
+		Vector3.y = Vector3.y / normalize(Vector3.x, Vector3.y);
+
+		velocity.y = Vector3.y;
+		velocity.x = Vector3.x;
 	}
+
+
+	// 좌하단
 	else if (RightUp > width - moving_ball_radius) {
-		velocity.y = -velocity.y;
-		velocity.x = -velocity.x;
-		printf("RightUp : %f\n", RightUp);
+		// 벡터 정규화(벡터의 길이를 1로 만드는 것)
+		// 벡터의 각 성분을 벡터의 크기로 나누는 것
+
+
+		// 방향벡터(시점이 경기장의 중앙, 충돌 지점)
+		Vector1.x = moving_ball.x - center.x;
+		Vector1.y = Straight2(moving_ball.x) - center.y;
+
+
+		// 정규화
+		Vector1.x = Vector1.x / normalize(Vector1.x, Vector1.y);
+		Vector1.y = Vector1.y / normalize(Vector1.x, Vector1.y);
+
+
+		// 법선벡터(시점이 충돌 지점 600, 600 종점 경기장의 중앙)
+		Vector2.x = (width / 2) - 0.0;
+		Vector2.y = width - (width / 2);
+
+
+		// 정규화
+		Vector2.x = Vector2.x / normalize(Vector2.x, Vector2.y);
+		Vector2.y = Vector2.y / normalize(Vector2.x, Vector2.y);
+
+
+		Vector3.x = Vector1.x + (2 * Vector2.x);
+		Vector3.y = Vector1.y + (2 * Vector2.y);
+
+
+		velocity.y = Vector3.y;
+		velocity.x = Vector3.x;
 	}
 
 
 	// 경기장 좌상단 벽 충돌
-	/*printf("debug : %f\n", LeftUp);*/
-	
 	if (LeftUp < moving_ball_radius) {
-		velocity.y =-(velocity.y);
-		velocity.x = -(velocity.x);
-		printf("LeftUp : %f\n", LeftUp);
+		// 벡터 정규화(벡터의 길이를 1로 만드는 것)
+		// 벡터의 각 성분을 벡터의 크기로 나누는 것
+
+
+
+		// 방향벡터(시점이 경기장의 중앙, 충돌 지점 600, 600)
+		Vector1.x = moving_ball.x - center.x;
+		Vector1.y = Straight3(moving_ball.x) - center.y;
+
+		distanceP = sqrt(pow(Vector1.x, 2) + pow(Vector1.y, 2));
+
+		// 정규화
+		Vector1.x = Vector1.x / normalize(Vector1.x, Vector1.y);
+		Vector1.y = Vector1.y / normalize(Vector1.x, Vector1.y);
+
+
+		// 법선벡터(시점이 충돌 지점 600, 600 종점 경기장의 중앙)
+		Vector2.x = (width / 2) - 0.0;
+		Vector2.y = 0.0 - (width / 2);
+
+
+		// 정규화
+		Vector2.x = Vector2.x / normalize(Vector2.x, Vector2.y);
+		Vector2.y = Vector2.y / normalize(Vector2.x, Vector2.y);
+
+
+		Vector3.x = Vector1.x + (2 * Vector2.x);
+		Vector3.y = Vector1.y + (2 * Vector2.y);
+
+
+		velocity.y = Vector3.y;
+		velocity.x = Vector3.x;
 	}
+
+
+	// 경기장 우하단 충돌
 	else if (LeftUp > width - moving_ball_radius) {
-		velocity.y = -velocity.y;
-		velocity.x = -velocity.x;
-		printf("LeftUp : %f\n", LeftUp);
+		// 벡터 정규화(벡터의 길이를 1로 만드는 것)
+		// 벡터의 각 성분을 벡터의 크기로 나누는 것
+
+
+		// 방향벡터(시점이 경기장의 중앙, 충돌 지점 600, 600)
+		Vector1.x = moving_ball.x - center.x;
+		Vector1.y = Straight4(moving_ball.x) - center.y;
+
+
+		// 정규화
+		Vector1.x = Vector1.x / normalize(Vector1.x, Vector1.y);
+		Vector1.y = Vector1.y / normalize(Vector1.x, Vector1.y);
+
+
+		// 법선벡터(시점이 충돌 지점 600, 600 종점 경기장의 중앙)
+		Vector2.x = (width / 2) - width;
+		Vector2.y = width - (width / 2);
+
+
+		// 정규화
+		Vector2.x = Vector2.x / normalize(Vector2.x, Vector2.y);
+		Vector2.y = Vector2.y / normalize(Vector2.x, Vector2.y);
+
+
+		Vector3.x = Vector1.x + (2 * Vector2.x);
+		Vector3.y = Vector1.y + (2 * Vector2.y);
+
+		velocity.y = Vector3.y;
+		velocity.x = Vector3.x;
 	}
-	
-	
-
-
-	/*width
-	오른쪽 벽 충돌*/
-	if (moving_ball.x + moving_ball_radius > width) {
-		/*Bcollision_count--;*/
-		velocity.x = -velocity.x;
-		//printf("velocity.x : %f\n", velocity.x);
-		//printf("moving_ball.x : %f\n", moving_ball.x);
-	}
-
-	// width
-	// 위쪽 벽 충돌
-	if (moving_ball.y + moving_ball_radius > width) {
-		/*Bcollision_count++;*/
-		velocity.y = -velocity.y;
-		//printf("velocity.x : %f\n", velocity.x);
-		//printf("moving_ball.x : %f\n", moving_ball.x);
-	}
-
-	// 0
-	// 왼쪽 벽 충돌
-	//if (moving_ball.x - moving_ball_radius < 0.0) {
-	//	/*Bcollision_count++;*/
-	//	velocity.x = -velocity.x;
-	//	printf("LeftUp : %f\n", LeftUp);
-	//	//printf("velocity.x : %f\n", velocity.x);
-	//	//printf("moving_ball.x : %f\n", moving_ball.x);
-	//}
-
-	// 아래쪽 벽
-	//if (moving_ball.y - moving_ball_radius < 120.0) {
-	//	/*Bcollision_count--;*/
-	//	Bcollision_count++;
-	//	velocity.y = -velocity.y;
-	//	printf("LeftUp : %f\n", LeftUp);
-	//	//printf("velocity.x : %f\n", velocity.x);
-	//	//printf("moving_ball.x : %f\n", moving_ball.x);
-	//}
-
 }
 
 
@@ -448,7 +527,7 @@ void RenderScene(void) {
 	Collision_Detection_to_Walls(); // 공과 벽의 충돌 함수
 	Collision_Detection_to_Paddle();
 
-	// 움직이는 공 그리기 
+	// 움직이는 공 그리기
 	glColor3f(0.0, 1.0, 1.0);
 	Modeling_Circle(moving_ball_radius, moving_ball);
 
@@ -461,19 +540,24 @@ void MyKey(unsigned char key, int x, int y) {
 
 	switch (key) {
 
-	// 벡터 값 빼기
+		// 벡터 값 빼기
 	case 'n':
 		velocity.x -= 0.1;
 		velocity.y -= 0.1;
 		break;
 
-	// 벡터 방향 바꾸기
+	case 'b':
+		velocity.x += 0.1;
+		velocity.y += 0.1;
+		break;
+
+		// 벡터 방향 바꾸기
 	case 'm':
 		velocity.x = -velocity.x;
 		velocity.y = -velocity.y;
 		break;
-	
-	// 벡터 값 0으로 바꾸기
+
+		// 벡터 값 0으로 바꾸기
 	case 'p':
 		velocity.x = 0.0;
 		velocity.y = 0.0;
@@ -515,6 +599,9 @@ void SpecialKey(int key, int x, int y) {
 			break;
 		}
 		else {
+			printf("Paddle[0] : %f\n", Paddle[0]);
+			printf("Paddle[6] : %f\n", Paddle[6]);
+
 			Paddle[0] += 10.0;
 			Paddle[2] += 10.0;
 			Paddle[4] += 10.0;
