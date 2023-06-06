@@ -5,6 +5,7 @@
 #include <ios>
 
 
+// 두번째줄 4번째 벽돌 마무리 후 게임 끝내기(예외 처리)
 #define	width 800
 #define	height 800
 #define	PI 3.1415
@@ -17,22 +18,39 @@ int		left = 0;
 int		bottom = 0;
 int		right = 0;
 int		top = 0;
+int		fontpositionX = 500;
+
+// 구조체
+typedef struct _Point {
+	float	x;
+	float	y;
+} Point;
 
 
+Point moving_ball, velocity;
+Point center;
+
+// -350, 220 -> 두번째줄 4번째 벽돌 Top, Left 충돌
+float AngleX = -350, AngleY = 220;
+int WallCollision = 0;
+
+// 패들의 좌하단, 우상단 좌표
 float PaddleX1 = 300.0, PaddleX2 = 400.0;
 float PaddleY1 = 100.0, PaddleY2 = 120.0;
 
-float YellowBrick = 0;
-
+// 벽돌 충돌 개수 확인
 float brickCollisionCnt = 0;
 
 // 방향벡터 정규화
-float speed = 0.1;
+float speed = 0.5;
 
-// 고정된 공의 반지름, 움직이는 공의 반지름
-float	radius1, moving_ball_radius;
-float	delta1_x, delta2_y, deltaP1_x, deltaP2_y;
+// 움직이는 공의 반지름
+float	moving_ball_radius;
 
+
+
+//===============================================================================================================================================================================
+// [텍스트 및 박스 부분]
 
 // 비트맵폰트 함수
 void renderBitmapCharacter(float x, float y, void* font, char* string)
@@ -48,10 +66,46 @@ void renderBitmapCharacter(float x, float y, void* font, char* string)
 
 // SUCCESS 띄우는 함수
 void Draw_SUCCESS() {
-	glColor3f(1.0, 1.0, 1.0);
+	glColor3f(0.486275, 0.988235, 0.0);
 	char buf[100] = { 0 };
 	sprintf_s(buf, "SUCCESS");
 	renderBitmapCharacter(350, 400, GLUT_BITMAP_TIMES_ROMAN_24, buf);
+}
+
+
+// 개발자 기능
+void Help() {
+	glColor3f(0.0, 0.0, 0.0);
+	char buf[100] = { 0 };
+	sprintf_s(buf, "- Cheat Mode -");
+	renderBitmapCharacter(fontpositionX, 780, GLUT_BITMAP_9_BY_15, buf);
+}
+
+
+// 1번째 기능
+void First_function() {
+	glColor3f(0.0, 0.0, 0.0);
+	char buf[100] = { 0 };
+	sprintf_s(buf, "1. Reset : r");
+	renderBitmapCharacter(fontpositionX, 760, GLUT_BITMAP_9_BY_15, buf);
+}
+
+
+// 2번째 기능
+void Second_function() {
+	glColor3f(0.0, 0.0, 0.0);
+	char buf[100] = { 0 };
+	sprintf_s(buf, "2. Speed Change(+, -) : n or b");
+	renderBitmapCharacter(fontpositionX, 740, GLUT_BITMAP_9_BY_15, buf);
+}
+
+
+// 3번쨰 기능
+void Third_function() {
+	glColor3f(0.0, 0.0, 0.0);
+	char buf[100] = { 0 };
+	sprintf_s(buf, "3. End the game : c");
+	renderBitmapCharacter(fontpositionX, 720, GLUT_BITMAP_9_BY_15, buf);
 }
 
 
@@ -71,77 +125,10 @@ void Draw_GameText() {
 	renderBitmapCharacter(10, 10, GLUT_BITMAP_TIMES_ROMAN_24, buf2);
 }
 
-// 학번, 이름 박스
-void Modeling_NameBox() {
-
-	// 터키옥색
-	glColor3f(0.25098, 0.878431, 0.815686);
-
-	glBegin(GL_POLYGON);
-	glVertex2f(630.0, 0.0);
-	glVertex2f(630.0, 30.0);
-	glVertex2f(800.0, 30.0);
-	glVertex2f(800.0, 0.0);
-	glEnd();
-}
 
 
-// 패들 방정식
-//float StraightP(float u) {
-//	float x2 = PaddleX1, x1 = PaddleX2, y2 = PaddleY2, y1 = PaddleY2, m, y;
-//	m = (y2 - y1) / (x2 - x1);
-//
-//	y = m * (u - x1) + y1;
-//	return y;
-//}
-
-
-//// 직선의 방정식(우상단)
-//float Straight(float u) {
-//	float x2 = 400.0, x1 = 800.0, y2 = 800.0, y1 = 400.0, m, y;
-//	m = (y2 - y1) / (x2 - x1);
-//
-//	y = m * (u - x1) + y1;
-//	return y;
-//}
-//
-//
-//// 직선의 방정식(좌하단)
-//float Straight2(float i) {
-//	float x2 = 0.0, x1 = 400.0, y2 = 400.0, y1 = 0.0, m, y;
-//	m = (y2 - y1) / (x2 - x1);
-//
-//	y = m * (i - x1) + y1;
-//	return y;
-//}
-//
-//
-//// 직선의 방정식(좌상단)
-//float Straight3(float i) {
-//	float x2 = 0.0, x1 = 400.0, y2 = 400.0, y1 = 800.0, m, y;
-//	m = (y2 - y1) / (x2 - x1);
-//
-//	y = m * (i - x1) + y1;
-//	return y;
-//}
-//
-//
-//// 직선의 방정식(우하단)
-//float Straight4(float i) {
-//	float x2 = 400.0, x1 = 800.0, y2 = 0.0, y1 = 400.0, m, y;
-//	m = (y2 - y1) / (x2 - x1);
-//
-//	y = m * (i - x1) + y1;
-//	return y;
-//}
-
-// 패들 좌표(x, y)
-// Paddle[0], Paddle[1] => 패들 좌하단 좌표
-// Paddle[2], Paddle[3] => 패들 좌상단 좌표
-// Paddle[4], Paddle[5] => 패들 우상단 좌표
-// Paddle[6], Paddle[7] => 패들 우하단 좌표
-
-
+//===============================================================================================================================================================================
+// [패들의 전체 좌표, 첫번째, 두번째줄 벽돌 좌표]
 float Paddle[8] = { PaddleX1, PaddleY1, PaddleX1, PaddleY2, PaddleX2, PaddleY2, PaddleX2, PaddleY1 };
 
 // 첫번째 벽돌 좌표(아래기준, 0행 왼쪽에서 시작)
@@ -166,16 +153,9 @@ float brick2[5][9] = {
 };
 
 
-// 구조체
-typedef struct _Point {
-	float	x;
-	float	y;
-} Point;
 
-
-Point moving_ball, velocity;
-Point center;
-
+//===============================================================================================================================================================================
+// [수학적 함수 부분]
 
 // 정규화 식
 float normalize(float a, float b) {
@@ -191,37 +171,6 @@ float DotToDot(float x1, float y1, float x2, float y2) {
 	val = sqrt(pow((x2 - x2), 2) + pow((y2 - y1), 2));
 	return val;
 }
-
-
-// 각도 -> 벡터
-// 정규화된 해당하는 각도
-// x 좌표 : cos(2 * pi / 360 * 각도)
-// y 좌표 : sin(2 * pi / 360 * 각도)
-
-
-// 초기화 함수
-void init(void) {
-
-	moving_ball_radius = 10.0;
-	moving_ball.x = width / 4;
-	moving_ball.y = height / 2;
-
-	center.x = width / 4;
-	center.y = height / 4;
-
-	velocity.x = cos(2 * PI / 360 * 290);
-	velocity.y = sin(2 * PI / 360 * 180);
-}
-
-
-// 도형그리기 함수
-void MyReshape(int w, int h) {
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(left, left + width, bottom, bottom + height);
-}
-
 
 // 원과 직선 사이의 거리 공식(패들)
 float LinePaddle(float x1, float y1) {
@@ -247,6 +196,47 @@ float LineLeftUp(float x1, float y1) {
 
 	distanceLUp = std::abs((1 * x1) + (-1 * y1) + 400.0) / 1;
 	return distanceLUp;
+}
+
+//===============================================================================================================================================================================
+// [공, 벽돌, 텍스트 박스 등 물체를 그리는 함수]
+
+// 초기화 함수
+void init(void) {
+
+	moving_ball_radius = 10.0;
+	moving_ball.x = width / 4;
+	moving_ball.y = height / 2;
+
+	center.x = width / 2;
+	center.y = height / 4;
+
+	velocity.x = cos(2 * PI / 360 * AngleX);
+	velocity.y = sin(2 * PI / 360 * AngleY);
+}
+
+
+// 학번, 이름 박스
+void Modeling_NameBox() {
+
+	// 터키옥색
+	glColor3f(0.25098, 0.878431, 0.815686);
+
+	glBegin(GL_POLYGON);
+	glVertex2f(630.0, 0.0);
+	glVertex2f(630.0, 30.0);
+	glVertex2f(800.0, 30.0);
+	glVertex2f(800.0, 0.0);
+	glEnd();
+}
+
+
+// 도형그리기 함수
+void MyReshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(left, left + width, bottom, bottom + height);
 }
 
 
@@ -283,7 +273,7 @@ void Modeling_brick() {
 
 	for (int i = 0; i < 5; i++) {
 		if (brick[i][8] == 1.0) {
-			// 3번째 벽돌 Royal Blue 만들기
+			// 3번째 벽돌 만들기 -> 색상(Royal Blue)
 			if (i == 2) {
 				glColor3f(0.254902, 0.411765, 0.882353);
 			}
@@ -337,16 +327,8 @@ void Modeling_Paddle() {
 }
 
 
-// 패들 튕긴 후 벡터 구하기
-//float vectorCollisionAngleY(float b) {
-//	float vectorY;
-//
-//	vectorY = b - (2 * b);
-//	return vectorY;
-//}
-
-
 // ======================================================================================================================================================
+// [벽돌 좌표 부분]
 // 첫번째줄 블럭의 좌표들[벽돌 개수][벽돌의 x좌표][벽돌의 y좌표]
 float blockArr[5][2][4] = {
 	{
@@ -424,6 +406,7 @@ float block1Arr1[4][2][4] = {
 	}
 };
 
+
 // 첫번째줄 1번째 확장된 벽돌
 float block1Ex1[2][4] = {
 	{210.0, 210.0, 280.0, 280.0},
@@ -455,6 +438,7 @@ float block2Arr1[4][2][4] = {
 		{380.0, 430.0, 430.0, 380.0}
 	}
 };
+
 
 // 첫번째줄 2번째 확장된 벽돌
 float block2Ex1[2][4] = {
@@ -766,24 +750,27 @@ float block5EX2[2][4] = {
 
 
 // 확장된 사각형 그리기
-void Modeling_blockEX() {
-	glColor3f(1.0, 1.0, 1.0);
-	glBegin(GL_LINES);
-	glVertex2f(block3EX1[0][0], block3EX1[1][0]);
-	glVertex2f(block3EX1[0][1], block3EX1[1][1]);
+//void Modeling_blockEX() {
+//	glColor3f(1.0, 1.0, 1.0);
+//	glBegin(GL_LINES);
+//	glVertex2f(block3EX1[0][0], block3EX1[1][0]);
+//	glVertex2f(block3EX1[0][1], block3EX1[1][1]);
+//
+//	glVertex2f(block3EX1[0][1], block3EX1[1][1]);
+//	glVertex2f(block3EX1[0][2], block3EX1[1][2]);
+//
+//	glVertex2f(block3EX1[0][2], block3EX1[1][2]);
+//	glVertex2f(block3EX1[0][3], block3EX1[1][3]);
+//
+//	glVertex2f(block3EX1[0][3], block3EX1[1][3]);
+//	glVertex2f(block3EX1[0][0], block3EX1[1][0]);
+//	glEnd();
+//}
 
-	glVertex2f(block3EX1[0][1], block3EX1[1][1]);
-	glVertex2f(block3EX1[0][2], block3EX1[1][2]);
-
-	glVertex2f(block3EX1[0][2], block3EX1[1][2]);
-	glVertex2f(block3EX1[0][3], block3EX1[1][3]);
-
-	glVertex2f(block3EX1[0][3], block3EX1[1][3]);
-	glVertex2f(block3EX1[0][0], block3EX1[1][0]);
-	glEnd();
-}
 
 
+// ======================================================================================================================================================
+// [공과 벽돌 충돌 부분]
 // 공이 벽돌에 충돌했을때
 void Collision_Detection_to_Brick(void) {
 	Point vector1, vector2, vector3;
@@ -816,7 +803,7 @@ void Collision_Detection_to_Brick(void) {
 					/*원래 벽돌 말고 새로 만든 사각형 Top, Right, Bottom, Left*/
 					for (int i = 0; i < 4; i++) {
 						if (moving_ball.x >= block1Arr1[i][0][0] && moving_ball.x <= block1Arr1[i][0][2] && moving_ball.y >= block1Arr1[i][1][0] && moving_ball.y <= block1Arr1[i][1][1]) {
-							
+
 							// Top 사각형 안에 있는 경우
 							if (i == 0) {
 								velocity.y = -velocity.y;
@@ -912,6 +899,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick[2][8] = 0.0;
 					brickCollisionCnt++;
+					speed = 0.3;
 					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
 				}
 
@@ -994,7 +982,7 @@ void Collision_Detection_to_Brick(void) {
 		// 첫번째줄 확장된 벽돌 충돌 여부 확인
 		if ((moving_ball.x >= blockEX2[i][0][0] && moving_ball.x <= blockEX2[i][0][2]) && (moving_ball.y >= blockEX2[i][1][0] && moving_ball.y <= blockEX2[i][1][1])) {
 
-			// 첫번째줄 1번째 벽돌
+			// 두번째줄 1번째 벽돌
 			if (i == 0) {
 				if (brick2[0][8] == 1.0) {
 					for (int i = 0; i < 4; i++) {
@@ -1028,7 +1016,7 @@ void Collision_Detection_to_Brick(void) {
 				}
 			}
 
-			// 첫번째줄 2번째 벽돌
+			// 두번째줄 2번째 벽돌
 			if (i == 1) {
 				if (brick2[1][8] == 1.0) {
 
@@ -1053,7 +1041,10 @@ void Collision_Detection_to_Brick(void) {
 							if (i == 0) velocity.y = -velocity.y;
 
 							// Right, Bottom, Left 사각형 안에 있는 경우
-							else velocity.x = -velocity.x;
+							else {
+								/*velocity.y = -velocity.y;*/
+								velocity.x = -velocity.x;
+							}
 						}
 					}
 					brick2[1][8] = 0.0;
@@ -1064,7 +1055,7 @@ void Collision_Detection_to_Brick(void) {
 
 
 			else if (i == 2) {
-				// 첫번째줄 3번째 벽돌 (노란색 벽돌 -> 맞으면은 잠깐 느려짐)
+				// 두번째줄 3번째 벽돌 (노란색 벽돌 -> 맞으면은 잠깐 느려짐)
 				if (brick2[2][8] == 1.0) {
 
 					for (int i = 0; i < 4; i++) {
@@ -1089,7 +1080,7 @@ void Collision_Detection_to_Brick(void) {
 
 							// Top 사각형 안에 있는 경우
 							if (i == 0) {
-								velocity.x = -velocity.x; 
+								velocity.x = -velocity.x;
 
 								/*velocity.y += 0.8;*/
 							}
@@ -1108,7 +1099,7 @@ void Collision_Detection_to_Brick(void) {
 
 			}
 
-			// 첫번째줄 4번째 벽돌
+			// 두번째줄 4번째 벽돌
 			else if (i == 3) {
 				if (brick2[3][8] == 1.0) {
 
@@ -1130,7 +1121,10 @@ void Collision_Detection_to_Brick(void) {
 					for (int i = 0; i < 4; i++) {
 						if (moving_ball.x >= block4Arr2[i][0][0] && moving_ball.x <= block4Arr2[i][0][2] && moving_ball.y >= block4Arr2[i][1][0] && moving_ball.y <= block4Arr2[i][1][1]) {
 							// Top 사각형 안에 있는 경우
-							if (i == 0) velocity.y = -velocity.y;
+							if (i == 0) {
+								velocity.x = std::abs(velocity.x);
+								velocity.y = -velocity.y;
+							}
 
 							// Right, Bottom, Left 사각형 안에 있는 경우
 							else velocity.x = -velocity.x;
@@ -1138,10 +1132,11 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick2[3][8] = 0.0;
 					brickCollisionCnt++;
+					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
 				}
 			}
 
-			// 첫번째줄 5번째 벽돌
+			// 두번째줄 5번째 벽돌
 			else if (i == 4) {
 
 				if (brick2[4][8] == 1.0) {
@@ -1180,6 +1175,9 @@ void Collision_Detection_to_Brick(void) {
 }
 
 
+
+// ======================================================================================================================================================
+// [공과 패들 충돌]
 // 공이 패들에 충돌했을때
 void Collision_Detection_to_Paddle(void) {
 
@@ -1199,7 +1197,6 @@ void Collision_Detection_to_Paddle(void) {
 			vector2.x = vector1.x;
 			vector2.y = vector1.y - (2 * vector1.y);
 
-			/*vector2.y = vectorCollisionAngleY(vector1.y);*/
 
 			velocity.x = vector2.x;
 			velocity.y = vector2.y;
@@ -1207,6 +1204,9 @@ void Collision_Detection_to_Paddle(void) {
 	}
 }
 
+
+// ======================================================================================================================================================
+// [공과 벽의 충돌]
 
 // 공이 벽에 충돌했을때 함수
 void Collision_Detection_to_Walls(void) {
@@ -1222,14 +1222,6 @@ void Collision_Detection_to_Walls(void) {
 
 
 	if (RightUp < moving_ball_radius) {
-
-		printf("우상단 x : %f\n", velocity.x);
-		printf("우상단 y : %f\n", velocity.y);
-
-		// 벡터 정규화(벡터의 길이를 1로 만드는 것)
-		// 벡터의 각 성분을 벡터의 크기로 나누는 것
-		// 점과 점 사이의 거리(크기)
-		// 방향벡터(시점이 경기장의 중앙 -> 충돌 지점)
 
 		Vector1.x = velocity.x;
 		Vector1.y = velocity.y;
@@ -1253,10 +1245,6 @@ void Collision_Detection_to_Walls(void) {
 		Vector3.x = Vector1.x + 2 * Vector2.x * (-Vector1.x * Vector2.x + -Vector1.y * Vector2.y);
 		Vector3.y = Vector1.y + 2 * Vector2.y * (-Vector1.x * Vector2.x + -Vector1.y * Vector2.y);
 
-		//Vector3.x = Vector1.x + 2 * (Vector2.x);
-		//Vector3.y = Vector1.y + 2 * (Vector2.y);
-
-
 		// 정규화
 		Vector3.x = Vector3.x / normalize(Vector3.x, Vector3.y);
 		Vector3.y = Vector3.y / normalize(Vector3.x, Vector3.y);
@@ -1264,23 +1252,11 @@ void Collision_Detection_to_Walls(void) {
 
 		velocity.x = Vector3.x;
 		velocity.y = Vector3.y;
-
-
-		//// 새로운 방법(패들의 충돌 사용)
-		//Vector2.x = Vector1.x - (2 * Vector1.x);
-		//Vector2.y = Vector1.y;
-
-
-		//velocity.x = Vector2.x;
-		//velocity.y = Vector2.y;
 	}
 
 
 	// 좌하단
 	else if (RightUp > width - moving_ball_radius) {
-
-		//printf("좌하단 x : %f\n", velocity.x);
-		//printf("좌하단 y : %f\n", velocity.y);
 
 		Vector1.x = velocity.x;
 		Vector1.y = velocity.y;
@@ -1306,9 +1282,6 @@ void Collision_Detection_to_Walls(void) {
 		Vector3.y = Vector1.y + 2 * Vector2.y * (-Vector1.x * Vector2.x + -Vector1.y * Vector2.y);
 
 
-		//Vector3.x = Vector1.x + 2 * (Vector2.x);
-		//Vector3.y = Vector1.y + 2 * (Vector2.y);
-
 		// 정규화
 		Vector3.x = Vector3.x / normalize(Vector3.x, Vector3.y);
 		Vector3.y = Vector3.y / normalize(Vector3.x, Vector3.y);
@@ -1325,8 +1298,6 @@ void Collision_Detection_to_Walls(void) {
 		Vector1.x = velocity.x;
 		Vector1.y = velocity.y;
 
-		printf("좌상단 x : %f\n", velocity.x);
-		printf("좌상단 y : %f\n", velocity.y);
 
 		// 정규화
 		Vector1.x = Vector1.x / normalize(Vector1.x, Vector1.y);
@@ -1345,9 +1316,6 @@ void Collision_Detection_to_Walls(void) {
 		// 바뀐 벡터
 		Vector3.x = Vector1.x + 2 * Vector2.x * (-Vector1.x * Vector2.x + -Vector1.y * Vector2.y);
 		Vector3.y = Vector1.y + 2 * Vector2.y * (-Vector1.x * Vector2.x + -Vector1.y * Vector2.y);
-
-		//Vector3.x = Vector1.x + 2 * (Vector2.x);
-		//Vector3.y = Vector1.y + 2 * (Vector2.y);
 
 
 		// 정규화
@@ -1387,10 +1355,6 @@ void Collision_Detection_to_Walls(void) {
 		Vector3.y = Vector1.y + 2 * Vector2.y * (-Vector1.x * Vector2.x + -Vector1.y * Vector2.y);
 
 
-		//Vector3.x = Vector1.x + 2 * (Vector2.x);
-		//Vector3.y = Vector1.y + 2 * (Vector2.y);
-
-
 		// 정규화
 		Vector3.x = Vector3.x / normalize(Vector3.x, Vector3.y);
 		Vector3.y = Vector3.y / normalize(Vector3.x, Vector3.y);
@@ -1402,24 +1366,37 @@ void Collision_Detection_to_Walls(void) {
 }
 
 
+
 // 실행하는 함수
 void RenderScene(void) {
 
 	glClearColor(1.0, 1.0, 1.0, 0.0); // Set display-window color to Yellow
 	glClear(GL_COLOR_BUFFER_BIT);
 
-
+	// 전체적으로 그리는 부분
 	Modeling_NameBox();
 	Draw_NameText();
 	Draw_GameText();
+	Help();
+	First_function();
+	Second_function();
+	Third_function();
 
 	Modeling_GameGround();
 	Modeling_brick();
 	Modeling_brick2();
 	Modeling_Paddle();
-	
 
-	/*Modeling_blockEX();*/
+
+	// 공의 색상
+	glColor3f(0.941176, 0.901961, 0.54902);
+	Modeling_Circle(moving_ball_radius, moving_ball);
+	
+	if (brickCollisionCnt == 10) {
+		velocity.x = 0;
+		velocity.y = 0;
+		Draw_SUCCESS();
+	}
 
 
 	// 움직이는 공의 위치 변화
@@ -1432,59 +1409,61 @@ void RenderScene(void) {
 	Collision_Detection_to_Walls(); // 공과 벽의 충돌 함수
 	Collision_Detection_to_Paddle(); // 공과 패들의 충돌 함수
 
-	// 움직이는 공 그리기 (카키색)
-	/*glColor3f(0.741176, 0.717647, 0.419608);*/
-	if (brickCollisionCnt == 10) {
-		velocity.x = 0;
-		velocity.y = 0;
-		Draw_SUCCESS();
-	}
-	glColor3f(0.941176, 0.901961, 0.54902);
-	Modeling_Circle(moving_ball_radius, moving_ball);
-
 	glutSwapBuffers();
 	glFlush();
 }
 
 
+// 키보드 키를 누르는 함수(일반 키)
 void MyKey(unsigned char key, int x, int y) {
 
 	switch (key) {
 
-		// 벡터 값 빼기
+	// 공의 속도 빼기
 	case 'n':
 		velocity.x -= 0.1;
 		velocity.y -= 0.1;
 		break;
 
+	// 공의 속도 더하기
 	case 'b':
 		velocity.x += 0.1;
 		velocity.y += 0.1;
 		break;
 
-		// 벡터 방향 바꾸기 
+	// 공의 방향 바꾸기 
 	case 'm':
 		velocity.x = -velocity.x;
 		velocity.y = -velocity.y;
 		break;
 
-		// 벡터 값 0으로 바꾸기
+	// 공의 속도 멈추기(정지)
 	case 'p':
 		velocity.x = 0.0;
 		velocity.y = 0.0;
 		break;
 
+	// 공 위치 초기화(맵의 중앙)
+	case 'r':
+		moving_ball.x = width / 2;
+		moving_ball.y = height / 2;
+		break;
+
+	// 게임 끝내기
+	case 'c':
+		brickCollisionCnt = 10;
+		break;
+
 	default: break;
 	}
-
 }
 
 
-// 키보드 키를 누르는 함수
+// 키보드 키를 누르는 함수(스페셜 키)
 void SpecialKey(int key, int x, int y) {
 	switch (key) {
-
-		// 패들이 사각형 안에서 밖으로 안삐져나감(왼쪽 방향키)
+	
+	// 패들이 사각형 안에서 밖으로 안삐져나감(왼쪽 방향키)
 	case GLUT_KEY_LEFT:
 		if (Paddle[0] <= 280.0) {
 			Paddle[0] += 10.0;
@@ -1501,7 +1480,7 @@ void SpecialKey(int key, int x, int y) {
 			break;
 		}
 
-		// 패들이 사각형 안에서 밖으로 안삐져나감(오른쪽 방향키)
+	// 패들이 사각형 안에서 밖으로 안삐져나감(오른쪽 방향키)
 	case GLUT_KEY_RIGHT:
 		if (Paddle[0] >= 420.0) {
 			Paddle[0] -= 10.0;
@@ -1516,13 +1495,16 @@ void SpecialKey(int key, int x, int y) {
 			Paddle[4] += 10.0;
 			Paddle[6] += 10.0; break;
 		}
-
 	default: break;
 	}
 }
 
 
+// 메인 함수
 void main(int argc, char** argv) {
+	printf("위치 초기화(맵의 중앙) : r\n");
+	printf("속도 변경 : n or b\n");
+	printf("게임 끝내기 : c\n");
 	glutInit(&argc, argv);
 	glutInitWindowPosition(100, 100);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
