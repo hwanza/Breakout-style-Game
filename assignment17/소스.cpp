@@ -5,7 +5,6 @@
 #include <ios>
 
 
-// 두번째줄 4번째 벽돌 마무리 후 게임 끝내기(예외 처리)
 #define	width 800
 #define	height 800
 #define	PI 3.1415
@@ -19,6 +18,7 @@ int		bottom = 0;
 int		right = 0;
 int		top = 0;
 int		fontpositionX = 500;
+int		WallCollision = 0;
 
 // 구조체
 typedef struct _Point {
@@ -30,9 +30,17 @@ typedef struct _Point {
 Point moving_ball, velocity;
 Point center;
 
-// -350, 220 -> 두번째줄 4번째 벽돌 Top, Left 충돌
+
+// 영상1 : 패들 충돌 X (Cheat Mode)
+// AngleX, AngleY = -350, 220 || moving_ball.x = width / 4, moving_ball.y = height / 2
+// Cheat Mode
+
+// 영상2 : 패들 충돌 O (Cheat Mode)
+// AngleX, AngleY = 100, 130 || moving_ball.x = width / 2 - 100, moving_ball.y = height / 2 - 100
+// 벽, 벽돌 충돌에 막히면은 사용(Cheat Mode)
+
 float AngleX = -350, AngleY = 220;
-int WallCollision = 0;
+//float AngleX = 100, AngleY = 130;
 
 // 패들의 좌하단, 우상단 좌표
 float PaddleX1 = 300.0, PaddleX2 = 400.0;
@@ -42,7 +50,7 @@ float PaddleY1 = 100.0, PaddleY2 = 120.0;
 float brickCollisionCnt = 0;
 
 // 방향벡터 정규화
-float speed = 0.5;
+float speed = 0.3;
 
 // 움직이는 공의 반지름
 float	moving_ball_radius;
@@ -205,8 +213,11 @@ float LineLeftUp(float x1, float y1) {
 void init(void) {
 
 	moving_ball_radius = 10.0;
+
 	moving_ball.x = width / 4;
 	moving_ball.y = height / 2;
+	//moving_ball.x = width / 2 - 100;
+	//moving_ball.y = height / 2 - 100;
 
 	center.x = width / 2;
 	center.y = height / 4;
@@ -749,26 +760,6 @@ float block5EX2[2][4] = {
 };
 
 
-// 확장된 사각형 그리기
-//void Modeling_blockEX() {
-//	glColor3f(1.0, 1.0, 1.0);
-//	glBegin(GL_LINES);
-//	glVertex2f(block3EX1[0][0], block3EX1[1][0]);
-//	glVertex2f(block3EX1[0][1], block3EX1[1][1]);
-//
-//	glVertex2f(block3EX1[0][1], block3EX1[1][1]);
-//	glVertex2f(block3EX1[0][2], block3EX1[1][2]);
-//
-//	glVertex2f(block3EX1[0][2], block3EX1[1][2]);
-//	glVertex2f(block3EX1[0][3], block3EX1[1][3]);
-//
-//	glVertex2f(block3EX1[0][3], block3EX1[1][3]);
-//	glVertex2f(block3EX1[0][0], block3EX1[1][0]);
-//	glEnd();
-//}
-
-
-
 // ======================================================================================================================================================
 // [공과 벽돌 충돌 부분]
 // 공이 벽돌에 충돌했을때
@@ -819,7 +810,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick[0][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 
@@ -854,7 +845,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick[1][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 
@@ -899,8 +890,8 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick[2][8] = 0.0;
 					brickCollisionCnt++;
-					speed = 0.3;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					speed = 0.2;
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 
 			}
@@ -935,7 +926,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick[3][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 
@@ -970,7 +961,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick[4][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 		}
@@ -1012,7 +1003,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick2[0][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 
@@ -1049,7 +1040,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick2[1][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 
@@ -1094,7 +1085,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick2[2][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 
 			}
@@ -1132,7 +1123,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick2[3][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 
@@ -1167,7 +1158,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick2[4][8] = 0.0;
 					brickCollisionCnt++;
-					printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);
+					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 			}
 		}
