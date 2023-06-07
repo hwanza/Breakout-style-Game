@@ -20,6 +20,7 @@ int		top = 0;
 int		fontpositionX = 500;
 int		WallCollision = 0;
 
+
 // 구조체
 typedef struct _Point {
 	float	x;
@@ -39,22 +40,26 @@ Point center;
 // AngleX, AngleY = 100, 130 || moving_ball.x = width / 2 - 100, moving_ball.y = height / 2 - 100
 // 벽, 벽돌 충돌에 막히면은 사용(Cheat Mode)
 
+
 float AngleX = -350, AngleY = 220;
 //float AngleX = 100, AngleY = 130;
+
 
 // 패들의 좌하단, 우상단 좌표
 float PaddleX1 = 300.0, PaddleX2 = 400.0;
 float PaddleY1 = 100.0, PaddleY2 = 120.0;
 
+
 // 벽돌 충돌 개수 확인
 float brickCollisionCnt = 0;
 
+
 // 방향벡터 정규화
-float speed = 0.3;
+float speed = 0.25;
+
 
 // 움직이는 공의 반지름
 float	moving_ball_radius;
-
 
 
 //===============================================================================================================================================================================
@@ -189,7 +194,7 @@ float LinePaddle(float x1, float y1) {
 }
 
 
-// 원과 직선 사이의 거리 공식(우상단)
+// 점과 직선 사이의 거리 공식(우상단)
 float LineRightUp(float x1, float y1) {
 	float distanceRUp;
 
@@ -198,7 +203,7 @@ float LineRightUp(float x1, float y1) {
 }
 
 
-// 원과 직선 사이의 거리 공식(좌상단)
+// 점과 직선 사이의 거리 공식(좌상단)
 float LineLeftUp(float x1, float y1) {
 	float distanceLUp;
 
@@ -211,7 +216,7 @@ float LineLeftUp(float x1, float y1) {
 
 // 초기화 함수
 void init(void) {
-
+	
 	moving_ball_radius = 10.0;
 
 	moving_ball.x = width / 4;
@@ -890,7 +895,7 @@ void Collision_Detection_to_Brick(void) {
 					}
 					brick[2][8] = 0.0;
 					brickCollisionCnt++;
-					speed = 0.2;
+					speed = 0.15;
 					/*printf("벽돌 충돌 개수 : %f\n", brickCollisionCnt);*/
 				}
 
